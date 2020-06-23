@@ -1,0 +1,37 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+@model IEnumerable<TicketSystem.Data.ApplicationUser>
+
+<div class="text-center">
+    <h1 class="display-4">Welcome</h1>
+    <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+</div>
+
+<div class="container">
+
+    <h1 class="bg-info text-white">All Users</h1>
+    <a asp-controller="Home" asp-action="Create" class="btn btn-lg btn-primary">Create a User</a>
+
+    <table class="table table-sm table-bordered">
+        <tr><th>ID</th><th>Name</th><th>Email</th><th>Update</th><th>Delete</th></tr>
+        @foreach (TicketSystem.Data.ApplicationUser user in Model)
+        {
+            <tr>
+                <td>@user.Id</td>
+                <td>@user.UserName</td>
+                <td>@user.Email</td>
+                @*<td>@user.PasswordHash</td>*@
+
+                <td><a class="btn btn-sm btn-primary" asp-action="Update" asp-route-id="@user.Id">Update</a></td>
+                <td>
+                    <form asp-action="Delete" asp-route-id="@user.Id" method="post">
+                        <button type="submit" class="btn btn-sm btn-danger">
+                            Delete
+                        </button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </table>
+</div>
