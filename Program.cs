@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -16,7 +18,7 @@ namespace TicketSystem
 {
     public class Program
     {
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
             //CreateHostBuilder(args).Build().Run();
 
@@ -30,15 +32,14 @@ namespace TicketSystem
                 try
                 {
                     var context = services.GetRequiredService<ApplicationDbContext>();
-                    
+
                     var configuration = services.GetRequiredService<IConfiguration>();
                     var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
                     var roleManager = services.GetService<RoleManager<IdentityRole>>();
 
-
                     if (configuration.GetValue<bool>("useSeedData"))
                     {
-                        SeedData.Initialize(context, userManager, roleManager);
+                        await SeedData.InitializeAsync(context, userManager, roleManager, configuration["userDefaultPassword"].ToString());
                     }
                     else
                     {
@@ -46,30 +47,13 @@ namespace TicketSystem
                         var role = roleManager.FindByNameAsync(DataConstants.AdministratorRole).Result;
                         if (role == null)
                         {
-                            roleManager.CreateAsync(new IdentityRole(DataConstants.AdministratorRole));
+                            // roleManager.CreateAsync(new IdentityRole(DataConstants.AdministratorRole));
+                            await roleManager.CreateAsync(new IdentityRole { Name = DataConstants.AdministratorRole });
                         }
                     }
 
-                    var admin = userManager.FindByNameAsync(DataConstants.RootUsername).Result;
-                    if (admin == null)
-                    {
-                        admin = new ApplicationUser
-                        {
-                            UserName = DataConstants.RootUsername,
-                            FirstName = DataConstants.RootUsername,
-                            LastName = DataConstants.RootUsername,
-                            DateAdded = DateTime.Now.AddYears(-2),
-                            IsAdmin = true
-                        };
-                        userManager.CreateAsync(admin, configuration["adminPassword"]).Wait();
-                    }
-                    if (!userManager.IsInRoleAsync(admin, DataConstants.AdministratorRole).Result)
-                    {
-                        userManager.AddToRoleAsync(admin, DataConstants.AdministratorRole).Wait();
-                    }
-
-
-
+                    //add admin
+                    await SeedData.CreateAdminAsync(context, userManager, roleManager, configuration["adminDefaultPassword"].ToString());
                 }
                 catch (Exception ex)
                 {
@@ -78,10 +62,9 @@ namespace TicketSystem
                 }
             }
 
-            #endregion ForDBInitializer
+            #endregion ForDB SEEDDATA
 
             host.Run();
-
         }
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>

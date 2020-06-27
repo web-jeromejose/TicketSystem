@@ -31,7 +31,8 @@ namespace TicketSystem
             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlServer(
                     Configuration.GetConnectionString("DefaultConnection"))
-                .UseLazyLoadingProxies());
+                //.UseLazyLoadingProxies()
+                );
             services.AddIdentity<ApplicationUser, IdentityRole>(options => options.SignIn.RequireConfirmedAccount = true)
                 .AddDefaultTokenProviders()
                 .AddDefaultUI()
@@ -54,7 +55,7 @@ namespace TicketSystem
                 options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(10);
 
                 //user settings
-                options.User.RequireUniqueEmail = true;
+               options.User.RequireUniqueEmail = true;
             });
 
             //for authentication.facebook
@@ -66,18 +67,18 @@ namespace TicketSystem
             });
 
             //for authentication.cookies
-            services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-               .AddCookie(options =>
-               {
-                   options.LoginPath = "/Account/Login";
-                   options.LogoutPath = "/Account/Logout";
-                   options.Cookie.Name = "jerome_cookie";
-                   options.Cookie.HttpOnly = false;
-                   options.Cookie.SameSite = Microsoft.AspNetCore.Http.SameSiteMode.None;
-               });
+            //services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+            //   .AddCookie(options =>
+            //   {
+            //       options.LoginPath = "/Account/Login";
+            //       options.LogoutPath = "/Account/Logout";
+            //       options.Cookie.Name = "jerome_cookie";
+            //       options.Cookie.HttpOnly = false;
+            //       options.Cookie.SameSite = Microsoft.AspNetCore.Http.SameSiteMode.None;
+            //   });
 
             services.AddControllersWithViews();
-            services.AddRazorPages();
+            services.AddRazorPages().AddRazorRuntimeCompilation();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -102,11 +103,11 @@ namespace TicketSystem
             app.UseAuthentication();
             app.UseAuthorization();
 
-            var cookiePolicyOptions = new CookiePolicyOptions()
-            {
-                MinimumSameSitePolicy = Microsoft.AspNetCore.Http.SameSiteMode.Strict
-            };
-            app.UseCookiePolicy(cookiePolicyOptions);
+            //var cookiePolicyOptions = new CookiePolicyOptions()
+            //{
+            //    MinimumSameSitePolicy = Microsoft.AspNetCore.Http.SameSiteMode.Strict
+            //};
+            //app.UseCookiePolicy(cookiePolicyOptions);
 
             app.UseEndpoints(endpoints =>
             {

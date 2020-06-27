@@ -1,49 +1,203 @@
-﻿<!DOCTYPE html>
+﻿@using Microsoft.AspNetCore.Identity
+@using TicketSystem.Models
+@using TicketSystem.Data
+@inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<ApplicationUser> UserManager
+
+<!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="msapplication-tap-highlight" content="no">
+    <meta name="description" content="Materialize is a modern responsive CSS framework based on Material Design by Google. ">
+    <!-- Favicons-->
+    <link rel="apple-touch-icon-precomposed" href="images/favicon/apple-touch-icon-152x152.png">
+    <meta name="msapplication-TileColor" content="#FFFFFF">
+    <meta name="msapplication-TileImage" content="images/favicon/mstile-144x144.png">
+    <link rel="icon" href="images/favicon/favicon-32x32.png" sizes="32x32">
     <title>@ViewData["Title"] - TicketSystem</title>
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="~/css/site.css" />
+    <!--  Android 5 Chrome Color-->
+    <meta name="theme-color" content="#EE6E73">
+    <!-- CSS  -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+    <link href="~/lib/bootstrap/dist/css/bootstrap-grid.min.css" type="text/css" rel="stylesheet" media="screen,projection" />
+    <link href="~/css/style.css" type="text/css" rel="stylesheet" media="screen,projection" />
+    <link href="~/materialize/css/materialize.css" type="text/css" rel="stylesheet" media="screen,projection" />
+  
+
+    @if (IsSectionDefined("Style"))
+    {
+        @RenderSection("Style")
+    }
 </head>
 <body>
     <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
+        <!-- Dropdown Structure -->
+        <ul id="dropdown1Mobile" class="dropdown-content">
+            <li><a href="#!">one Mobile</a></li>
+            <li><a href="#!">two Mobile</a></li>
+            <li class="divider"></li>
+            <li><a href="#!">three Mobile</a></li>
+        </ul>
+        <ul id="dropdown1" class="dropdown-content ">
+            <li><a href="#!">one</a></li>
+            <li><a href="#!">two</a></li>
+            <li class="divider"></li>
+            <li class="materialize-red lighten-4 red-text">
+                <a asp-controller="Account" asp-action="Logout">Log out</a>
+            </li>
+        </ul>
+
+        <nav class="light-blue lighten-1" role="navigation">
+            <div class="nav-wrapper container">
+                <a id="logo-container" href="@Url.Content("~/")" class="brand-logo"><i class="material-icons large">cloud</i> System</a>
+                <!--For Web Nav -->
+                <ul class="right hide-on-med-and-down">
+
+
+                    <li>
+                        <a asp-controller="Tickets" asp-action="All">Tickets</a>
+                    </li>
+                    <li>
+                        <a asp-controller="Clients" asp-action="All">Clients</a>
+                    </li>
+                    @if (User.IsInRole(DataConstants.AdministratorRole))
+                    {
+                        <li>
+                            <a asp-controller="Technicians" asp-action="All">Technicians</a>
+                        </li>
+                        <li>
+                            <a asp-controller="Reports" asp-action="All">Reports</a>
+                        </li>
+                    }
+                    @if (SignInManager.IsSignedIn(User))
+                    {
+                        <li>
+                            <a class="dropdown-trigger" href="#!" data-target="dropdown1">
+                                <b>Hello @UserManager.GetUserName(User)!</b>
+                                <i class="material-icons right">arrow_drop_down</i>
+                            </a>
+                        </li>
+
+                    }
+                    else
+                    {
+                        <li class="nav-item amber-text text-darken-2">
+                            <a asp-controller="Account" asp-action="Login">Log in</a>
+                        </li>
+                    }
+                </ul>
+
+                <!--For Mobile Nav -->
+                <ul id="nav-mobile" class="sidenav">
+                    <li><a href="#">Navbar Link</a></li>
+                    <hr />
+                    <li><a href="badges.html">Components</a></li>
+                    <li><a href="collapsible.html">JavaScript</a></li>
+                    <!-- Dropdown Trigger -->
+                    <li><a class="dropdown-trigger" href="#!" data-target="dropdown1Mobile">Dropdown<i class="material-icons right">arrow_drop_down</i></a></li>
+                    <li><a href="sass.html"><i class="material-icons left">search</i>Link with Left Icon</a></li>
+                    <li><a href="badges.html">Components</a></li>
+                    <li><a href="badges.html"><i class="material-icons">view_module</i></a></li>
+                </ul>
+                <a href="#" data-target="nav-mobile" class="sidenav-trigger"><i class="material-icons">menu</i></a>
+
+
+            </div>
+
+        </nav>
+
+
+    </header>
+    <main>
+        <div class="section no-pad-bot" id="index-banner">
             <div class="container">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">TicketSystem</a>
-                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex flex-sm-row-reverse">
-                    <partial name="_LoginPartial" />
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                        </li>
+                <br><br>
+                @if (IsSectionDefined("headerpagetitle"))
+                {
+                    @RenderSection("headerpagetitle")
+                }
+                @* ***************COPY THIS DIV
+                    <h1 class="header center orange-text">Starter Template</h1>
+                    <div class="row center">
+                        <h5 class="header col s12 light">A modern responsive front-end framework based on Material Design</h5>
+                    </div>
+                    <div class="row center">
+                        <a href="http://materializecss.com/getting-started.html" id="download-button" class="btn-large waves-effect waves-light orange">Get Started</a>
+                    </div>
+                    ******************************** *@
+            </div>
+        </div>
+        <br><br>
+        <div class="container">
+            @* ***************COPY FOR GRID LAYOUT
+                 <div class="row ">
+                            <div class="col s1 purple">1</div>
+                            <div class="col s1">2</div>
+                            <div class="col s1 purple">3</div>
+                            <div class="col s1">4</div>
+                            <div class="col s1 purple">5</div>
+                            <div class="col s1">6</div>
+                            <div class="col s1 purple">7</div>
+                            <div class="col s1">8</div>
+                            <div class="col s1 purple">9</div>
+                            <div class="col s1  ">10</div>
+                            <div class="col s1 purple">11</div>
+                            <div class="col s1 ">12</div>
+
+                            <div class="col grid-example s12 blue lighten-1"><span class="flow-text">s12</span></div>
+                            <div class="col grid-example s12 m4 l2 teal lighten-1"><span class="flow-text">s12 m4 l2</span></div>
+                            <div class="col grid-example s12 m4 l8 teal lighten-1"><span class="flow-text">s12 m4 l8</span></div>
+                            <div class="col grid-example s12 m4 l2 teal lighten-1"><span class="flow-text">s12 m4 l2</span></div>
+                            <div class="col grid-example s12 m6 l3 purple lighten-3"><span class="flow-text">s12 m6 l3</span></div>
+                            <div class="col grid-example s12 m6 l3 purple lighten-3"><span class="flow-text">s12 m6 l3</span></div>
+                            <div class="col grid-example s12 m6 l3 purple lighten-3"><span class="flow-text">s12 m6 l3</span></div>
+                            <div class="col grid-example s12 m6 l3 purple lighten-3"><span class="flow-text">s12 m6 l3</span></div>
+                        </div>
+                ******************************** *@
+
+
+            @RenderBody()
+        </div>
+    </main>
+    <footer class="page-footer grey darken-2">
+        <div class="container">
+            <div class="row">
+                <div class="col l6 s12">
+                    <h5 class="white-text">Footer Content</h5>
+                    <p class="grey-text text-lighten-4">You can use rows and columns here to organize your footer content.</p>
+                </div>
+                <div class="col l4 offset-l2 s12">
+                    <h5 class="white-text">Links</h5>
+                    <ul>
+                        <li><a class="grey-text text-lighten-3" href="#!">Link 1</a></li>
+                        <li><a class="grey-text text-lighten-3" href="#!">Link 2</a></li>
+                        <li><a class="grey-text text-lighten-3" href="#!">Link 3</a></li>
+                        <li><a class="grey-text text-lighten-3" href="#!">Link 4</a></li>
                     </ul>
                 </div>
             </div>
-        </nav>
-    </header>
-    <div class="container">
-        <main role="main" class="pb-3">
-            @RenderBody()
-        </main>
-    </div>
-
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2020 - TicketSystem - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+        </div>
+        <div class="footer-copyright">
+            <div class="container">
+                © 2014 Copyright Text
+                <a class="grey-text text-lighten-4 right" href="#!">More Links</a>
+            </div>
         </div>
     </footer>
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/js/site.js" asp-append-version="true"></script>
+
+
+    <!--  Scripts-->
+    <script src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
+    <!-- Compiled and minified JavaScript -->
+    <script src="~/lib/bootstrap/dist/js/bootstrap.min.js"></script>
+    <script src="~/materialize/js/materialize.js"></script>
+    <script src="~/materialize/js/init.js"></script>
     @RenderSection("Scripts", required: false)
+    <partial name="_ValidationScriptsPartial" />
 </body>
 </html>

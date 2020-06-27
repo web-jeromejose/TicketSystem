@@ -1,9 +1,7 @@
-﻿ 
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Linq;
-
 using TicketSystem.Models;
 
 namespace TicketSystem.Data
@@ -220,8 +218,24 @@ namespace TicketSystem.Data
         /// <param name="context">context</param>
         /// <param name="userManager">admin</param>
         /// <param name="roleManager"></param>
-        public static void Initialize(ApplicationDbContext context, UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager)
+        public static async System.Threading.Tasks.Task InitializeAsync(ApplicationDbContext context, UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager, string UserPassword)
         {
+            // Look for any data.
+
+            //// 1. this is Alternative for data seeding using EFCOre
+            if (context.Clients.Any())
+            {
+                return;   // DB has been seeded
+            }
+            if (context.Users.Any())
+            {
+                return;   // DB has been seeded
+            }
+            if (context.Tickets.Any())
+            {
+                return;   // DB has been seeded
+            }
+
             context.Database.EnsureDeleted();
             context.Database.Migrate();
 
@@ -232,33 +246,36 @@ namespace TicketSystem.Data
                 client.DateAdded = DateTime.Now.AddMonths(randGenerator.Next(-24, -12));
             }
 
+            await context.Clients.AddRangeAsync(_clients);
+
+            await context.SaveChangesAsync();
+
             var role = roleManager.FindByNameAsync(DataConstants.AdministratorRole).Result;
             if (role == null)
             {
-                roleManager.CreateAsync(new IdentityRole(DataConstants.AdministratorRole));
+                await roleManager.CreateAsync(new IdentityRole { Name = DataConstants.AdministratorRole });
             }
 
-            foreach (var ApplicationUser in _ApplicationUsers)
+            foreach (var technician in _ApplicationUsers)
             {
-                ApplicationUser.DateAdded = DateTime.Now.AddMonths(randGenerator.Next(-36, -25));
-                ApplicationUser.UserName = $"{ApplicationUser.FirstName}.{ApplicationUser.LastName}";
-                userManager.CreateAsync(ApplicationUser, "password").Wait();
-                if (ApplicationUser.IsAdmin)
+                technician.DateAdded = DateTime.Now.AddMonths(randGenerator.Next(-36, -25));
+                technician.EmailConfirmed = true;
+                technician.UserName = $"{technician.FirstName.Trim()}@gmail.com";
+                technician.Email = $"{technician.FirstName.Trim()}@gmail.com";
+
+                IdentityResult result = await userManager.CreateAsync(technician, UserPassword.ToString());
+                if (technician.IsAdmin)
                 {
-                    userManager.AddToRoleAsync(ApplicationUser, DataConstants.AdministratorRole);
+                    await userManager.AddToRoleAsync(technician, DataConstants.AdministratorRole);
                 }
             }
-
-            context.Clients.AddRange(_clients);
-
-            context.SaveChanges();
 
             foreach (var client in context.Clients)
             {
                 var ticketCount = randGenerator.Next(0, 15);
                 for (var i = 0; i < ticketCount; i++)
                 {
-                    context.Tickets.Add(new Ticket
+                    await context.Tickets.AddAsync(new Ticket
                     {
                         ClientId = client.Id,
                         Title = $"{client.Company}: Case {i}",
@@ -271,8 +288,7 @@ namespace TicketSystem.Data
                     });
                 }
             }
-
-            context.SaveChanges();
+            await context.SaveChangesAsync();
 
             foreach (var ticket in context.Tickets)
             {
@@ -281,7 +297,7 @@ namespace TicketSystem.Data
                 {
                     var start = ticket.DateAdded.AddHours(randGenerator.Next(1, 60));
                     var end = start.AddMinutes(randGenerator.Next(15, 60));
-                    context.TechnicianTicketTimes.Add(new TechnicianTicketTime
+                    await context.TechnicianTicketTimes.AddAsync(new TechnicianTicketTime
                     {
                         Start = start,
                         End = end,
@@ -290,8 +306,39 @@ namespace TicketSystem.Data
                     });
                 }
             }
+            await context.SaveChangesAsync();
+        }
 
-            context.SaveChanges();
+        public static async System.Threading.Tasks.Task CreateAdminAsync(ApplicationDbContext context, UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager, string UserPassword)
+        {
+            try
+            {
+                var admin = userManager.FindByNameAsync(DataConstants.RootUsername).Result;
+                if (admin == null)
+                {
+                    admin = new ApplicationUser
+                    {
+                        UserName = DataConstants.RootUsername,
+                        FirstName = DataConstants.RootUsername,
+                        LastName = DataConstants.RootUsername,
+                        DateAdded = DateTime.Now.AddYears(-2),
+                        Email = "mesekarome@gmail.com",
+                        EmailConfirmed = true,
+                        LockoutEnabled = false,
+                        IsAdmin = true
+                    };
+                    var password = UserPassword.ToString();
+                    IdentityResult result = await userManager.CreateAsync(admin, password);
+                }
+                if (!userManager.IsInRoleAsync(admin, DataConstants.AdministratorRole).Result)
+                {
+                    userManager.AddToRoleAsync(admin, DataConstants.AdministratorRole).Wait();
+                }
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
         }
     }
 }
